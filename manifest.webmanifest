@@ -1,0 +1,16 @@
+{
+  "name": "CFL Daily Data Input",
+  "short_name": "CFL Daily",
+  "description": "Centre for Financial Literacy — Uttar Pradesh field data application",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eef5f1",
+  "theme_color": "#086b45",
+  "icons": [
+    {"src":"assets/icons/icon-192.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"assets/icons/icon-512.png","sizes":"512x512","type":"image/png","purpose":"any"},
+    {"src":"assets/icons/maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}
+  ]
+}

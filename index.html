@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#086b45">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CFL Daily">
+  <title>CFL Daily Data Input</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+  <div id="shell">
+    <header class="topbar">
+      <div class="brand">
+        <img src="assets/icons/icon-192.png" alt="CFL" class="brand-icon">
+        <div><strong>CFL Daily Data Input</strong><small>Centre for Financial Literacy — Uttar Pradesh</small></div>
+      </div>
+      <div class="actions">
+        <span id="netState" class="status">Online</span>
+        <button id="installBtn" class="btn secondary" hidden>Install</button>
+        <button id="refreshBtn" class="btn" type="button">Refresh</button>
+      </div>
+    </header>
+
+    <main id="appStage">
+      <div id="loading" class="loading-card">
+        <div class="spinner"></div>
+        <h2>Opening CFL App…</h2>
+        <p>मोबाइल वर्कस्पेस लोड हो रहा है।</p>
+      </div>
+      <iframe id="appFrame" title="CFL Daily Data Input" allow="camera; geolocation; microphone; clipboard-read; clipboard-write" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <section id="fallback" class="fallback" hidden>
+        <div class="fallback-card">
+          <h2>App did not open inside PWA</h2>
+          <p>कुछ browsers Google Apps Script को iframe में धीमा या block कर सकते हैं। नीचे वाला button app को direct खोलेगा।</p>
+          <button id="openDirectBtn" class="btn big">Open CFL App</button>
+          <button id="retryBtn" class="btn secondary big">Try Again</button>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
