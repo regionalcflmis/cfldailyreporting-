@@ -1,54 +1,104 @@
 (() => {
   const cfg = window.CFL_PWA_CONFIG || {};
   const appUrl = String(cfg.appUrl || '').replace(/\/$/, '');
-  const page = cfg.startPage || 'mobile';
+  const page = String(cfg.startPage || 'mobile');
+  const timeoutMs = Number(cfg.loadTimeoutMs || 30000);
   const frame = document.getElementById('appFrame');
-  const loading = document.getElementById('loading');
-  const fallback = document.getElementById('fallback');
-  const netState = document.getElementById('netState');
+  const splash = document.getElementById('splash');
+  const offlinePanel = document.getElementById('offlinePanel');
+  const errorPanel = document.getElementById('errorPanel');
   const installBtn = document.getElementById('installBtn');
+  const loadingText = document.getElementById('loadingText');
+  let timer = null;
   let installPrompt = null;
-  let loadTimer = null;
 
-  function targetUrl(){
+  function buildUrl() {
     if (!appUrl) return '';
-    return appUrl + (appUrl.includes('?') ? '&' : '?') + 'page=' + encodeURIComponent(page) + '&pwa=1&t=' + Date.now();
+    const sep = appUrl.includes('?') ? '&' : '?';
+    return appUrl + sep + 'page=' + encodeURIComponent(page) + '&pwa=1&v=2';
   }
-  function setNetwork(){
-    const online = navigator.onLine;
-    netState.textContent = online ? 'Online' : 'Offline';
-    netState.classList.toggle('offline', !online);
-  }
-  function openFrame(){
-    const url = targetUrl();
-    fallback.hidden = true;
-    loading.hidden = false;
-    frame.style.opacity = '0';
-    if (!url) { fallback.hidden = false; loading.hidden = true; return; }
-    frame.src = url;
-    clearTimeout(loadTimer);
-    loadTimer = setTimeout(() => {
-      if (frame.style.opacity !== '1') { loading.hidden = true; fallback.hidden = false; }
-    }, 15000);
-  }
-  frame.addEventListener('load', () => {
-    clearTimeout(loadTimer);
-    loading.hidden = true;
-    fallback.hidden = true;
-    frame.style.opacity = '1';
-  });
-  document.getElementById('refreshBtn').addEventListener('click', openFrame);
-  document.getElementById('retryBtn').addEventListener('click', openFrame);
-  document.getElementById('openDirectBtn').addEventListener('click', () => location.href = targetUrl());
-  addEventListener('online', setNetwork); addEventListener('offline', setNetwork); setNetwork();
 
-  addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; installBtn.hidden = false; });
+  function showSplash(text) {
+    loadingText.textContent = text || 'ऐप खुल रहा है…';
+    splash.hidden = false;
+    splash.classList.remove('hide');
+    errorPanel.hidden = true;
+    offlinePanel.hidden = true;
+    frame.classList.remove('ready');
+  }
+
+  function hideSplash() {
+    frame.classList.add('ready');
+    splash.classList.add('hide');
+    setTimeout(() => { splash.hidden = true; }, 220);
+  }
+
+  function openApp(force) {
+    clearTimeout(timer);
+    if (!navigator.onLine) {
+      splash.hidden = true;
+      errorPanel.hidden = true;
+      offlinePanel.hidden = false;
+      return;
+    }
+    const url = buildUrl();
+    if (!url) {
+      splash.hidden = true;
+      errorPanel.hidden = false;
+      return;
+    }
+    showSplash('ऐप खुल रहा है…');
+    frame.src = force ? url + '&t=' + Date.now() : url;
+    timer = setTimeout(() => {
+      if (!frame.classList.contains('ready')) {
+        splash.hidden = true;
+        errorPanel.hidden = false;
+      }
+    }, timeoutMs);
+  }
+
+  frame.addEventListener('load', () => {
+    clearTimeout(timer);
+    hideSplash();
+  });
+
+  document.getElementById('retryBtn').addEventListener('click', () => openApp(true));
+  document.getElementById('reloadBtn').addEventListener('click', () => openApp(true));
+  document.getElementById('directBtn').addEventListener('click', () => { location.href = buildUrl(); });
+
+  addEventListener('offline', () => {
+    offlinePanel.hidden = false;
+    errorPanel.hidden = true;
+  });
+  addEventListener('online', () => {
+    offlinePanel.hidden = true;
+    openApp(true);
+  });
+
+  addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    installPrompt = e;
+    installBtn.hidden = false;
+  });
   installBtn.addEventListener('click', async () => {
     if (!installPrompt) return;
-    installPrompt.prompt(); await installPrompt.userChoice; installPrompt = null; installBtn.hidden = true;
+    installPrompt.prompt();
+    await installPrompt.userChoice;
+    installPrompt = null;
+    installBtn.hidden = true;
   });
-  addEventListener('appinstalled', () => installBtn.hidden = true);
+  addEventListener('appinstalled', () => { installBtn.hidden = true; });
 
-  if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(console.warn));
-  openFrame();
+  if ('serviceWorker' in navigator) {
+    addEventListener('load', async () => {
+      try {
+        const reg = await navigator.serviceWorker.register('./service-worker.js?v=2');
+        reg.update().catch(() => {});
+      } catch (e) {
+        console.warn('Service worker registration failed', e);
+      }
+    });
+  }
+
+  openApp(false);
 })();

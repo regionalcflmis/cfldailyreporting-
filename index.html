@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
@@ -9,43 +9,53 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="CFL Daily">
   <title>CFL Daily Data Input</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="assets/icons/icon-192.png">
-  <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-  <link rel="stylesheet" href="assets/app.css">
+  <link rel="manifest" href="./manifest.webmanifest?v=2">
+  <link rel="icon" href="./assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
+  <link rel="stylesheet" href="./assets/app.css?v=2">
 </head>
 <body>
-  <div id="shell">
-    <header class="topbar">
-      <div class="brand">
-        <img src="assets/icons/icon-192.png" alt="CFL" class="brand-icon">
-        <div><strong>CFL Daily Data Input</strong><small>Centre for Financial Literacy — Uttar Pradesh</small></div>
-      </div>
-      <div class="actions">
-        <span id="netState" class="status">Online</span>
-        <button id="installBtn" class="btn secondary" hidden>Install</button>
-        <button id="refreshBtn" class="btn" type="button">Refresh</button>
-      </div>
-    </header>
+  <main id="appRoot">
+    <section id="splash" class="splash" aria-live="polite">
+      <img src="./assets/icons/icon-192.png" alt="CFL" class="logo">
+      <div class="title">CFL Daily Data Input</div>
+      <div class="subtitle">Centre for Financial Literacy — Uttar Pradesh</div>
+      <div class="loader" aria-hidden="true"></div>
+      <div id="loadingText" class="loading-text">ऐप खुल रहा है…</div>
+    </section>
 
-    <main id="appStage">
-      <div id="loading" class="loading-card">
-        <div class="spinner"></div>
-        <h2>Opening CFL App…</h2>
-        <p>मोबाइल वर्कस्पेस लोड हो रहा है।</p>
+    <iframe
+      id="appFrame"
+      title="CFL Daily Data Input"
+      allow="camera; geolocation; microphone; clipboard-read; clipboard-write"
+      referrerpolicy="no-referrer-when-downgrade"
+    ></iframe>
+
+    <section id="offlinePanel" class="message-panel" hidden>
+      <div class="message-card">
+        <img src="./assets/icons/icon-192.png" alt="CFL" class="small-logo">
+        <h2>Internet connection required</h2>
+        <p>Google Sheet forms और login के लिए internet आवश्यक है। Connection आने के बाद Retry दबाएँ।</p>
+        <button id="retryBtn" type="button">Retry / पुनः प्रयास</button>
       </div>
-      <iframe id="appFrame" title="CFL Daily Data Input" allow="camera; geolocation; microphone; clipboard-read; clipboard-write" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      <section id="fallback" class="fallback" hidden>
-        <div class="fallback-card">
-          <h2>App did not open inside PWA</h2>
-          <p>कुछ browsers Google Apps Script को iframe में धीमा या block कर सकते हैं। नीचे वाला button app को direct खोलेगा।</p>
-          <button id="openDirectBtn" class="btn big">Open CFL App</button>
-          <button id="retryBtn" class="btn secondary big">Try Again</button>
+    </section>
+
+    <section id="errorPanel" class="message-panel" hidden>
+      <div class="message-card">
+        <img src="./assets/icons/icon-192.png" alt="CFL" class="small-logo">
+        <h2>App खोलने में समय लग रहा है</h2>
+        <p>एक बार फिर प्रयास करें। जरूरत हो तो app direct भी खोल सकते हैं।</p>
+        <div class="btn-row">
+          <button id="reloadBtn" type="button">Retry</button>
+          <button id="directBtn" class="secondary" type="button">Open Direct</button>
         </div>
-      </section>
-    </main>
-  </div>
-  <script src="config.js"></script>
-  <script src="app.js"></script>
+      </div>
+    </section>
+
+    <button id="installBtn" class="install-fab" type="button" hidden>Install App</button>
+  </main>
+
+  <script src="./config.js?v=2"></script>
+  <script src="./app.js?v=2"></script>
 </body>
 </html>
