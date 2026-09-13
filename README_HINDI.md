@@ -1,28 +1,32 @@
-# CFL Daily PWA v2 — Full Screen Fix
+# CFL Daily PWA v3 — Exact Apps Script Deployment
 
-इस version में GitHub PWA का extra top header हटा दिया गया है। App खुलने के बाद केवल Apps Script वाला CFL login/form दिखाई देगा।
+यह PWA इस exact Apps Script Web App को full-screen में खोलता है:
 
-## Existing GitHub repository update
+https://script.google.com/macros/s/AKfycbyeTTmWOz7Rb0QoEKQZegIexx0JknfD7Oo9J3U4C9Hp3zZZ6EnzqqC6eHwHNBWGYfsZ/exec
+
+## क्या बदला है
+- पुराने Apps Script deployment URL को पूरी तरह हटाया गया है।
+- PWA अब `/exec` root खोलता है; `?page=mobile` force नहीं करता।
+- Apps Script login के बाद role/mobile routing खुद करेगा।
+- PWA का अलग top header नहीं है; Apps Script app full-screen दिखता है।
+- Camera और GPS iframe permissions enabled हैं।
+- GitHub shell cache होता है, लेकिन Apps Script live रहता है।
+
+## GitHub Pages पर upload
 1. ZIP extract करें।
-2. पुराने repository की root files को इस ZIP की files से replace/upload करें।
-3. GitHub में **Add file → Upload files** से सभी files/folders upload करें।
-4. `assets` folder भी पूरा upload करें।
-5. **Commit changes** करें।
-6. Settings → Pages में branch `main` और `/(root)` पहले जैसा रहने दें।
-7. 1–3 मिनट बाद GitHub Pages URL खोलें।
+2. Repository में ZIP के अंदर की सभी files root में upload/replace करें।
+3. Commit changes करें।
+4. Settings > Pages > Deploy from a branch > main > /(root) > Save.
+5. 1–3 मिनट बाद Pages URL खोलें।
 
-## अगर पुराना header फिर भी दिखे
-पुराना Service Worker/cache हो सकता है। इनमें से कोई एक करें:
-- Chrome में GitHub PWA page खोलकर **Ctrl+Shift+R** करें।
-- Mobile में installed पुराना app एक बार remove करके GitHub Pages URL दोबारा खोलें और Install करें।
-- या Chrome Site Settings → Storage → Clear site data करके reload करें।
+## पुराने PWA cache को हटाना
+अगर पुराना design/URL दिखे:
+- Desktop: Ctrl+Shift+R
+- Chrome Android: installed पुराना PWA uninstall करें, browser site data/cache clear करें, नया GitHub URL खोलें और Install app करें।
 
-## Apps Script URL
-`config.js` में आपका existing deployment URL पहले से set है।
+## Mobile install
+Android Chrome: menu > Install app / Add to Home screen.
+iPhone Safari: Share > Add to Home Screen.
 
-## क्या बदला
-- Extra GitHub green header हटाया।
-- Full viewport iframe बनाया।
-- Loading के समय केवल short green splash दिखता है, app load होते ही गायब हो जाता है।
-- PWA cache version v2 किया ताकि पुराने UI से conflict कम हो।
-- Mobile safe-area और full-screen standalone mode support रखा।
+## Optional deep links
+GitHub PWA URL में `?page=daily`, `?page=village`, `?page=demand` आदि देने पर वही page Apps Script को pass किया जा सकता है, यदि backend route उसे support करता है।

@@ -1,8 +1,9 @@
 (() => {
+  'use strict';
   const cfg = window.CFL_PWA_CONFIG || {};
   const appUrl = String(cfg.appUrl || '').replace(/\/$/, '');
-  const page = String(cfg.startPage || 'mobile');
-  const timeoutMs = Number(cfg.loadTimeoutMs || 30000);
+  const timeoutMs = Number(cfg.loadTimeoutMs || 45000);
+  const version = String(cfg.version || '3');
   const frame = document.getElementById('appFrame');
   const splash = document.getElementById('splash');
   const offlinePanel = document.getElementById('offlinePanel');
@@ -12,10 +13,20 @@
   let timer = null;
   let installPrompt = null;
 
-  function buildUrl() {
+  function requestedPage() {
+    const q = new URLSearchParams(location.search);
+    return String(q.get('page') || cfg.startPage || '').trim();
+  }
+
+  function buildUrl(force) {
     if (!appUrl) return '';
-    const sep = appUrl.includes('?') ? '&' : '?';
-    return appUrl + sep + 'page=' + encodeURIComponent(page) + '&pwa=1&v=2';
+    const params = [];
+    const page = requestedPage();
+    if (page) params.push('page=' + encodeURIComponent(page));
+    params.push('pwa=1');
+    params.push('pwaVersion=' + encodeURIComponent(version));
+    if (force) params.push('_=' + Date.now());
+    return appUrl + (appUrl.includes('?') ? '&' : '?') + params.join('&');
   }
 
   function showSplash(text) {
@@ -30,10 +41,10 @@
   function hideSplash() {
     frame.classList.add('ready');
     splash.classList.add('hide');
-    setTimeout(() => { splash.hidden = true; }, 220);
+    setTimeout(() => { splash.hidden = true; }, 180);
   }
 
-  function openApp(force) {
+  function openApp(force = false) {
     clearTimeout(timer);
     if (!navigator.onLine) {
       splash.hidden = true;
@@ -41,14 +52,14 @@
       offlinePanel.hidden = false;
       return;
     }
-    const url = buildUrl();
+    const url = buildUrl(force);
     if (!url) {
       splash.hidden = true;
       errorPanel.hidden = false;
       return;
     }
-    showSplash('ऐप खुल रहा है…');
-    frame.src = force ? url + '&t=' + Date.now() : url;
+    showSplash('CFL ऐप खुल रहा है…');
+    frame.src = url;
     timer = setTimeout(() => {
       if (!frame.classList.contains('ready')) {
         splash.hidden = true;
@@ -64,7 +75,9 @@
 
   document.getElementById('retryBtn').addEventListener('click', () => openApp(true));
   document.getElementById('reloadBtn').addEventListener('click', () => openApp(true));
-  document.getElementById('directBtn').addEventListener('click', () => { location.href = buildUrl(); });
+  document.getElementById('directBtn').addEventListener('click', () => {
+    location.href = buildUrl(true);
+  });
 
   addEventListener('offline', () => {
     offlinePanel.hidden = false;
@@ -92,7 +105,7 @@
   if ('serviceWorker' in navigator) {
     addEventListener('load', async () => {
       try {
-        const reg = await navigator.serviceWorker.register('./service-worker.js?v=2');
+        const reg = await navigator.serviceWorker.register('./service-worker.js?v=3');
         reg.update().catch(() => {});
       } catch (e) {
         console.warn('Service worker registration failed', e);
