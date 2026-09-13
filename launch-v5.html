@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="hi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#075f3a">
+  <meta name="color-scheme" content="light">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CFL Daily">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>CFL Daily Data Input</title>
+  <link rel="manifest" href="./manifest.webmanifest?build=20260914-v5">
+  <link rel="icon" href="./assets/icons/icon-192.png?build=5">
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png?build=5">
+  <style>
+    *{box-sizing:border-box}
+    html,body,#app{margin:0;width:100%;height:100%;overflow:hidden;background:#075f3a;font-family:"Segoe UI",Arial,sans-serif}
+    #webapp{position:fixed;inset:0;width:100%;height:100%;border:0;background:#fff;opacity:0;transition:opacity .12s ease}
+    #webapp.ready{opacity:1}
+    #splash{position:fixed;inset:0;display:grid;place-items:center;background:#075f3a;color:#fff;z-index:5;text-align:center;padding:20px}
+    .splash-card{display:flex;flex-direction:column;align-items:center;gap:10px}
+    .splash-card img{width:76px;height:76px;border-radius:19px}
+    .title{font-size:22px;font-weight:800}.sub{font-size:13px;opacity:.82}
+    .spinner{width:34px;height:34px;border:4px solid rgba(255,255,255,.28);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;margin-top:8px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    #error{position:fixed;inset:0;display:none;place-items:center;background:#f3f8f5;z-index:10;padding:20px}
+    .error-card{width:min(440px,100%);background:#fff;border:1px solid #dce8e1;border-radius:18px;padding:24px;text-align:center;box-shadow:0 18px 55px rgba(0,50,28,.14)}
+    .error-card h2{margin:0 0 8px;color:#075f3a}.error-card p{margin:0 0 16px;color:#5e6e65;line-height:1.5;font-size:13px}
+    .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+    button,a.btn{border:0;border-radius:10px;padding:12px 16px;font-weight:800;cursor:pointer;text-decoration:none;font-size:14px}
+    .primary{background:#087445;color:#fff}.secondary{background:#edf5f1;color:#075f3a}
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="splash"><div class="splash-card"><img src="./assets/icons/icon-192.png" alt="CFL"><div class="title">CFL Daily Data Input</div><div class="sub">Latest app खोल रहा है…</div><div class="spinner"></div></div></div>
+  <iframe id="webapp" title="CFL Daily Data Input" allow="camera; geolocation; microphone; clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  <div id="error"><div class="error-card"><h2>App load नहीं हुआ</h2><p>Internet connection check करें। अगर पुराना login/UI दिखाई दे रहा है तो नीचे Reset PWA दबाएँ।</p><div class="actions"><button id="retry" class="primary">Retry</button><a id="direct" class="btn secondary" target="_blank" rel="noopener">Direct App</a><a class="btn secondary" href="./RESET_PWA_V5.html">Reset PWA</a></div></div></div>
+</div>
+<script>
+(() => {
+  'use strict';
+  const APP_URL = 'https://script.google.com/macros/s/AKfycbyeTTmWOz7Rb0QoEKQZegIexx0JknfD7Oo9J3U4C9Hp3zZZ6EnzqqC6eHwHNBWGYfsZ/exec';
+  const BUILD = '20260914-v5-final';
+  const frame = document.getElementById('webapp');
+  const splash = document.getElementById('splash');
+  const error = document.getElementById('error');
+  const direct = document.getElementById('direct');
+  let timeoutId;
+
+  function liveUrl() {
+    const join = APP_URL.includes('?') ? '&' : '?';
+    return APP_URL + join + '_pwa_build=' + encodeURIComponent(BUILD) + '&_ts=' + Date.now();
+  }
+
+  async function migrateOldPwaOnce() {
+    try {
+      if (localStorage.getItem('CFL_PWA_MIGRATED_TO_V5') === BUILD) return;
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const reg of regs) {
+          const script = (reg.active || reg.waiting || reg.installing)?.scriptURL || '';
+          if (!script.includes('service-worker-v5.js')) await reg.unregister();
+        }
+      }
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.filter(k => /cfl[-_ ]?(pwa|daily)/i.test(k)).map(k => caches.delete(k)));
+      }
+      localStorage.setItem('CFL_PWA_MIGRATED_TO_V5', BUILD);
+    } catch (e) { console.warn('PWA migration:', e); }
+  }
+
+  function loadApp() {
+    clearTimeout(timeoutId);
+    error.style.display = 'none';
+    splash.style.display = 'grid';
+    frame.classList.remove('ready');
+    const url = liveUrl();
+    direct.href = url;
+    frame.src = url;
+    timeoutId = setTimeout(() => {
+      if (!frame.classList.contains('ready')) {
+        splash.style.display = 'none';
+        error.style.display = 'grid';
+      }
+    }, 30000);
+  }
+
+  frame.addEventListener('load', () => {
+    clearTimeout(timeoutId);
+    frame.classList.add('ready');
+    splash.style.display = 'none';
+    error.style.display = 'none';
+  });
+  document.getElementById('retry').addEventListener('click', loadApp);
+
+  addEventListener('load', async () => {
+    await migrateOldPwaOnce();
+    if ('serviceWorker' in navigator) {
+      try { await navigator.serviceWorker.register('./service-worker-v5.js?build=' + BUILD, {scope:'./', updateViaCache:'none'}); }
+      catch (e) { console.warn('SW register:', e); }
+    }
+    loadApp();
+  });
+})();
+</script>
+</body>
+</html>
